@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { withAuth, AuthenticatedRequest } from '@/lib/middleware';
 
-async function handler(req: AuthenticatedRequest, { params }: { params: { id: string } }) {
+async function handler(req: AuthenticatedRequest, context: { params: { id: string } }) {
+  const { id } = context.params;
   try {
     if (req.method === 'GET') {
       const parcel = await db.parcel.findUnique({
-        where: { id: params.id },
+        where: { id },
         include: {
           user: {
             select: {
@@ -63,7 +64,7 @@ async function handler(req: AuthenticatedRequest, { params }: { params: { id: st
 
       // Check if parcel exists
       const existingParcel = await db.parcel.findUnique({
-        where: { id: params.id },
+        where: { id },
       });
 
       if (!existingParcel) {
@@ -72,7 +73,7 @@ async function handler(req: AuthenticatedRequest, { params }: { params: { id: st
 
       // Update parcel
       const updatedParcel = await db.parcel.update({
-        where: { id: params.id },
+        where: { id },
         data: {
           ...(origin && { origin }),
           ...(destination && { destination }),
@@ -115,7 +116,7 @@ async function handler(req: AuthenticatedRequest, { params }: { params: { id: st
       if (status && status !== existingParcel.status) {
         await db.statusHistory.create({
           data: {
-            parcelId: params.id,
+            parcelId: id,
             status: status as any,
             location: currentLocation || existingParcel.currentLocation || 'System',
             description: `Status updated to ${status}`,

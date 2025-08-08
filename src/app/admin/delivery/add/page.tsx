@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Package, ArrowLeft } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface User {
   id: string;
@@ -43,8 +44,8 @@ export default function AdminAddDeliveryPage() {
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     // Check if user is logged in
@@ -82,9 +83,9 @@ export default function AdminAddDeliveryPage() {
 
   const loadUsers = async () => {
     try {
-      // Try to get from API first
+      // Get customers only
       const token = localStorage.getItem('admin_token');
-      const response = await fetch('/api/admin/users', {
+      const response = await fetch('/api/admin/customers', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -105,7 +106,7 @@ export default function AdminAddDeliveryPage() {
         setFilteredUsers(mockUsers);
       }
     } catch (error) {
-      console.error('Error loading users:', error);
+      console.error('Error loading customers:', error);
       // Fallback to mock data
       const mockUsers = [
         { id: '1', name: 'John Doe', email: 'john@example.com', phone: '08012345678' },
@@ -119,7 +120,7 @@ export default function AdminAddDeliveryPage() {
 
   const loadStaff = async () => {
     try {
-      // Try to get from API first
+      // Get staff and admin users, then filter to only show staff
       const token = localStorage.getItem('admin_token');
       const response = await fetch('/api/admin/staff', {
         headers: {
@@ -129,11 +130,12 @@ export default function AdminAddDeliveryPage() {
       
       if (response.ok) {
         const data = await response.json();
-        setStaff(data.staff || []);
+        // Filter to only show STAFF users (not ADMIN)
+        const staffOnly = data.users?.filter((user: any) => user.role === 'STAFF') || [];
+        setStaff(staffOnly);
       } else {
         // Fallback to localStorage
         const mockStaff = [
-          { id: '1', name: 'Admin User', email: 'admin@nipost.com' },
           { id: '2', name: 'Staff User', email: 'staff@nipost.com' },
         ];
         setStaff(mockStaff);
@@ -142,7 +144,6 @@ export default function AdminAddDeliveryPage() {
       console.error('Error loading staff:', error);
       // Fallback to mock data
       const mockStaff = [
-        { id: '1', name: 'Admin User', email: 'admin@nipost.com' },
         { id: '2', name: 'Staff User', email: 'staff@nipost.com' },
       ];
       setStaff(mockStaff);
@@ -152,7 +153,6 @@ export default function AdminAddDeliveryPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
     try {
       const token = localStorage.getItem('admin_token');
@@ -172,14 +172,26 @@ export default function AdminAddDeliveryPage() {
       });
 
       if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Delivery created successfully!",
+        });
         router.push('/admin/delivery');
       } else {
         const errorData = await response.json();
-        setError(errorData.error || 'Failed to create delivery');
+        toast({
+          title: "Error",
+          description: errorData.error || 'Failed to create delivery',
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error('Error creating delivery:', error);
-      setError('Failed to create delivery');
+      toast({
+        title: "Error",
+        description: "Failed to create delivery. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -223,12 +235,6 @@ export default function AdminAddDeliveryPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-600">{error}</p>
-                </div>
-              )}
-
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="trackingNumber">Tracking Number</Label>

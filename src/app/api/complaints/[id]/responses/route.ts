@@ -89,14 +89,26 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     // Create notification for customer if not internal response
     if (!isInternal) {
-      await db.notification.create({
-        data: {
-          userId: complaint.userId,
-          message: `Response received for your complaint: ${complaint.title}`,
-          type: 'EMAIL',
-          status: 'PENDING',
-        },
-      });
+      try {
+        // Verify the user exists before creating notification
+        const userExists = await db.user.findUnique({
+          where: { id: complaint.userId }
+        });
+
+        if (userExists) {
+          await db.notification.create({
+            data: {
+              userId: complaint.userId,
+              message: `Response received for your complaint: ${complaint.title}`,
+              type: 'EMAIL',
+              status: 'PENDING',
+            },
+          });
+        }
+      } catch (notificationError) {
+        console.error('Error creating notification:', notificationError);
+        // Don't fail the response creation if notification fails
+      }
     }
 
     return NextResponse.json({ response });

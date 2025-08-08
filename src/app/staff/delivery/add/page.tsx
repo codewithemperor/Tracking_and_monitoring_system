@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Package, MapPin, Weight, AlertCircle, Users, ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 interface User {
   id: string;
@@ -29,12 +30,14 @@ const deliveryStatuses = [
 
 export default function StaffAddDelivery() {
   const router = useRouter();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
+    trackingNumber: '',
     userId: "",
     origin: "",
     destination: "",
     weight: "",
-    dimensions: "",
+    value: "",
     description: "",
     status: "PENDING",
     estimatedDelivery: "",
@@ -46,8 +49,6 @@ export default function StaffAddDelivery() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [usersLoading, setUsersLoading] = useState(true);
-  const [success, setSuccess] = useState("");
-  const [error, setError] = useState("");
 
   useEffect(() => {
     loadUsers();
@@ -84,7 +85,11 @@ export default function StaffAddDelivery() {
       }
     } catch (error) {
       console.error('Error loading users:', error);
-      setError('Failed to load users');
+      toast({
+        title: "Error",
+        description: "Failed to load users",
+        variant: "destructive",
+      });
     } finally {
       setUsersLoading(false);
     }
@@ -97,13 +102,20 @@ export default function StaffAddDelivery() {
     setShowUserDropdown(false);
   };
 
+  const generateTrackingNumber = () => {
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substr(2, 5);
+    return `NP${timestamp}${random}`.toUpperCase();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
-    setSuccess("");
 
     try {
+      // Generate tracking number if not provided
+      const trackingNumber = formData.trackingNumber || generateTrackingNumber();
+      
       const token = localStorage.getItem('staff_token');
       const response = await fetch("/api/parcels", {
         method: "POST",
@@ -111,22 +123,38 @@ export default function StaffAddDelivery() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          trackingNumber,
+          weight: formData.weight ? parseFloat(formData.weight) : undefined,
+          value: formData.value ? parseFloat(formData.value) : undefined,
+        }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess("Delivery created successfully!");
+        toast({
+          title: "Success",
+          description: "Delivery created successfully!",
+        });
         setTimeout(() => {
           router.push('/staff/delivery');
-        }, 2000);
+        }, 1500);
       } else {
-        setError(data.error || "Failed to create delivery");
+        toast({
+          title: "Error",
+          description: data.error || "Failed to create delivery",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error creating delivery:", error);
-      setError("Failed to create delivery");
+      toast({
+        title: "Error",
+        description: "Failed to create delivery. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -160,26 +188,28 @@ export default function StaffAddDelivery() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {success && (
-              <Alert className="mb-4 border-green-200 bg-green-50">
-                <AlertCircle className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-600">
-                  {success}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {error && (
-              <Alert className="mb-4 border-red-200 bg-red-50">
-                <AlertCircle className="h-4 w-4 text-red-600" />
-                <AlertDescription className="text-red-600">
-                  {error}
-                </AlertDescription>
-              </Alert>
-            )}
-
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="trackingNumber">Tracking Number</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="trackingNumber"
+                      value={formData.trackingNumber}
+                      onChange={(e) => setFormData(prev => ({ ...prev, trackingNumber: e.target.value }))}
+                      placeholder="Auto-generated or enter manually"
+                      required
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setFormData(prev => ({ ...prev, trackingNumber: generateTrackingNumber() }))}
+                    >
+                      Generate
+                    </Button>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="user">Customer</Label>
                   <div className="relative">
@@ -290,13 +320,13 @@ export default function StaffAddDelivery() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="dimensions">Dimensions</Label>
+                  <Label htmlFor="value">Value (₦)</Label>
                   <Input
-                    id="dimensions"
-                    type="text"
-                    placeholder="e.g., 10x5x3 cm"
-                    value={formData.dimensions}
-                    onChange={(e) => setFormData(prev => ({ ...prev, dimensions: e.target.value }))}
+                    id="value"
+                    type="number"
+                    placeholder="Enter value"
+                    value={formData.value}
+                    onChange={(e) => setFormData(prev => ({ ...prev, value: e.target.value }))}
                   />
                 </div>
 
@@ -328,7 +358,7 @@ export default function StaffAddDelivery() {
                 </Link>
                 <Button 
                   type="submit" 
-                  disabled={loading || !formData.userId || !formData.origin || !formData.destination}
+                  disabled={loading || !formData.userId || !formData.origin || !formData.destination || !formData.trackingNumber}
                   className="bg-nipost-blue hover:bg-nipost-dark-blue"
                 >
                   {loading ? (

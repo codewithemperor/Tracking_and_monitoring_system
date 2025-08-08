@@ -11,13 +11,13 @@ function generateUserId(role: UserRole): string {
   
   switch (role) {
     case 'CUSTOMER':
-      return `NIPUSR${timestamp}${random}`;
+      return `NIPCUS${timestamp}${random}`;
     case 'STAFF':
-      return `NIPSTF${timestamp}${random}`;
+      return `NIPSTFF${timestamp}${random}`;
     case 'ADMIN':
       return `NIPADM${timestamp}${random}`;
     default:
-      return `NIPUSR${timestamp}${random}`;
+      return `NIPCUS${timestamp}${random}`;
   }
 }
 
@@ -27,20 +27,23 @@ const registerSchema = z.object({
   name: z.string().min(2),
   phone: z.string().optional(),
   address: z.string().optional(),
-  role: z.enum(['CUSTOMER']).optional().default('CUSTOMER'),
+  role: z.enum(['CUSTOMER', 'ADMIN']).optional().default('CUSTOMER'),
+  adminCode: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, name, phone, address, role } = registerSchema.parse(body);
+    const { email, password, name, phone, address, role, adminCode } = registerSchema.parse(body);
 
-    // Only allow customer registration through public endpoint
-    if (role !== 'CUSTOMER') {
-      return NextResponse.json(
-        { error: 'Invalid role. Only customer registration is allowed through this endpoint.' },
-        { status: 400 }
-      );
+    // Validate admin registration
+    if (role === 'ADMIN') {
+      if (adminCode !== 'ADMIN2024') {
+        return NextResponse.json(
+          { error: 'Invalid admin registration code' },
+          { status: 400 }
+        );
+      }
     }
 
     // Check if user already exists

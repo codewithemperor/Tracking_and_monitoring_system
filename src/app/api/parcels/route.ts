@@ -12,31 +12,84 @@ const createParcelSchema = z.object({
   dimensions: z.string().optional(),
   description: z.string().optional(),
   estimatedDelivery: z.string().optional(),
+  userId: z.string().min(1),
+  staffId: z.string().optional(),
+  trackingNumber: z.string().optional(),
+  status: z.enum(['PENDING', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED', 'FAILED']).optional(),
+  value: z.number().positive().optional(),
 });
 
 async function handler(req: AuthenticatedRequest) {
   try {
     if (req.method === 'POST') {
       const body = await req.json();
-      const { origin, destination, weight, dimensions, description, estimatedDelivery } = createParcelSchema.parse(body);
+      const { 
+        origin, 
+        destination, 
+        weight, 
+        dimensions, 
+        description, 
+        estimatedDelivery,
+        userId,
+        staffId,
+        trackingNumber,
+        status,
+        value
+      } = createParcelSchema.parse(body);
 
-      // Generate unique tracking ID
-      const trackingId = generateTrackingId();
+      // Generate unique tracking ID if not provided
+      const trackingId = trackingNumber || generateTrackingId();
+
+      // Verify the user exists
+      const user = await db.user.findUnique({
+        where: { id: userId }
+      });
+
+      if (!user) {
+        return NextResponse.json(
+          { error: 'User not found' },
+          { status: 404 }
+        );
+      }
+
+      // Verify staff exists if provided
+      if (staffId) {
+        const staff = await db.user.findUnique({
+          where: { id: staffId }
+        });
+
+        if (!staff) {
+          return NextResponse.json(
+            { error: 'Staff not found' },
+            { status: 404 }
+          );
+        }
+      }
 
       // Create parcel
       const parcel = await db.parcel.create({
         data: {
           trackingId,
-          userId: req.user!.userId,
+          userId,
+          staffId: staffId || null,
           origin,
           destination,
           weight,
           dimensions,
+          value,
           description,
+          status: status || ParcelStatus.PENDING,
           estimatedDelivery: estimatedDelivery ? new Date(estimatedDelivery) : null,
         },
         include: {
           user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          staff: {
             select: {
               id: true,
               name: true,
@@ -56,7 +109,7 @@ async function handler(req: AuthenticatedRequest) {
       await db.statusHistory.create({
         data: {
           parcelId: parcel.id,
-          status: ParcelStatus.PENDING,
+          status: status || ParcelStatus.PENDING,
           location: origin,
           description: 'Parcel registered and awaiting dispatch',
           updatedBy: req.user!.userId,

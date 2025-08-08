@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Eye, EyeOff } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function StaffLogin() {
   const [formData, setFormData] = useState({
@@ -17,8 +17,8 @@ export default function StaffLogin() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     // Check if staff is already logged in
@@ -36,7 +36,6 @@ export default function StaffLogin() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
 
     try {
       const response = await fetch("/api/auth/login", {
@@ -58,12 +57,26 @@ export default function StaffLogin() {
         localStorage.setItem("staff_data", JSON.stringify(data.user));
         localStorage.setItem("staff_role", "STAFF");
         localStorage.setItem("staff_session_time", Date.now().toString());
+        
+        toast({
+          title: "Login successful",
+          description: `Welcome back, ${data.user.name}!`,
+        });
+        
         router.push("/staff");
       } else {
-        setError(data.message || "Login failed");
+        toast({
+          title: "Login failed",
+          description: data.message || "Invalid email or password",
+          variant: "destructive",
+        });
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      toast({
+        title: "Error",
+        description: "An error occurred. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -89,12 +102,6 @@ export default function StaffLogin() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input

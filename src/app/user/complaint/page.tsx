@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FileText, Package, AlertCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Delivery {
   id: string;
@@ -41,6 +42,7 @@ const deliveryComplaintCategories = [
 ];
 
 export default function UserComplaint() {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     category: "",
     trackingId: "",
@@ -49,8 +51,6 @@ export default function UserComplaint() {
   });
   const [showDeliverySelect, setShowDeliverySelect] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState("");
-  const [error, setError] = useState("");
   const [userDeliveries, setUserDeliveries] = useState<Delivery[]>([]);
   const [loadingDeliveries, setLoadingDeliveries] = useState(true);
 
@@ -75,6 +75,11 @@ export default function UserComplaint() {
         }
       } catch (error) {
         console.error('Error fetching user deliveries:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load your deliveries",
+          variant: "destructive",
+        });
       } finally {
         setLoadingDeliveries(false);
       }
@@ -95,8 +100,6 @@ export default function UserComplaint() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
-    setSuccess("");
 
     try {
       const token = localStorage.getItem('user_token');
@@ -117,7 +120,10 @@ export default function UserComplaint() {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess("Complaint submitted successfully!");
+        toast({
+          title: "Success",
+          description: "Complaint submitted successfully!",
+        });
         setFormData({
           category: "",
           trackingId: "",
@@ -125,10 +131,18 @@ export default function UserComplaint() {
           description: "",
         });
       } else {
-        setError(data.message || "Failed to submit complaint");
+        toast({
+          title: "Error",
+          description: data.message || "Failed to submit complaint",
+          variant: "destructive",
+        });
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      toast({
+        title: "Error",
+        description: "An error occurred. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -175,20 +189,6 @@ export default function UserComplaint() {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {error && (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  )}
-                  
-                  {success && (
-                    <Alert className="border-green-200 bg-green-50">
-                      <AlertCircle className="h-4 w-4 text-green-600" />
-                      <AlertDescription className="text-green-800">{success}</AlertDescription>
-                    </Alert>
-                  )}
-
                   <div className="space-y-2">
                     <Label htmlFor="category">Complaint Category</Label>
                     <Select value={formData.category} onValueChange={(value) => handleChange("category", value)}>

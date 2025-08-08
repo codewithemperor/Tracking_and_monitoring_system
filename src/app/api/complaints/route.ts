@@ -213,15 +213,35 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Create notification for staff/admin
-    await db.notification.create({
-      data: {
-        userId: session.user.role === 'ADMIN' ? session.user.id : 'system', // Would need to get actual staff/admin IDs
-        message: `New complaint filed: ${title}`,
-        type: 'EMAIL',
-        status: 'PENDING',
-      },
-    });
+    // Create notification for staff/admin users
+    try {
+      // Get staff and admin users to notify
+      const staffUsers = await db.user.findMany({
+        where: {
+          role: {
+            in: ['STAFF', 'ADMIN']
+          }
+        },
+        select: {
+          id: true
+        }
+      });
+
+      if (staffUsers.length > 0) {
+        // Create notifications for all staff/admin users
+        await db.notification.createMany({
+          data: staffUsers.map(staff => ({
+            userId: staff.id,
+            message: `New complaint filed: ${title}`,
+            type: 'EMAIL',
+            status: 'PENDING',
+          }))
+        });
+      }
+    } catch (notificationError) {
+      console.error('Error creating notifications:', notificationError);
+      // Don't fail the complaint creation if notification fails
+    }
 
     return NextResponse.json({ complaint });
   } catch (error) {
