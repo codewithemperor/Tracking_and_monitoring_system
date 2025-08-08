@@ -1,89 +1,38 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { StaffDashboardLayout } from "@/components/layout/staff-dashboard-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Package, Truck, MapPin, Clock, Search, Edit } from "lucide-react";
+import { Package, Truck, MapPin, Clock, Search, Edit, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 
-const allDeliveries = [
-  {
-    id: "NP001234",
-    trackingId: "NP001234",
-    userId: "USR001",
-    userName: "John Doe",
-    origin: "Lagos",
-    destination: "Abuja",
-    status: "IN_TRANSIT",
-    currentLocation: "Lokoja",
-    estimatedDelivery: "2024-01-15",
-    weight: "2.5 kg",
-    description: "Electronics package",
-    createdAt: "2024-01-12",
-  },
-  {
-    id: "NP001235",
-    trackingId: "NP001235",
-    userId: "USR002",
-    userName: "Jane Smith",
-    origin: "Port Harcourt",
-    destination: "Kano",
-    status: "DISPATCHED",
-    currentLocation: "Port Harcourt",
-    estimatedDelivery: "2024-01-18",
-    weight: "1.8 kg",
-    description: "Documents",
-    createdAt: "2024-01-13",
-  },
-  {
-    id: "NP001236",
-    trackingId: "NP001236",
-    userId: "USR003",
-    userName: "Mike Johnson",
-    origin: "Abuja",
-    destination: "Enugu",
-    status: "OUT_FOR_DELIVERY",
-    currentLocation: "Enugu",
-    estimatedDelivery: "2024-01-14",
-    weight: "3.2 kg",
-    description: "Clothing items",
-    createdAt: "2024-01-11",
-  },
-  {
-    id: "NP001233",
-    trackingId: "NP001233",
-    userId: "USR004",
-    userName: "Sarah Williams",
-    origin: "Port Harcourt",
-    destination: "Kano",
-    status: "DELIVERED",
-    currentLocation: "Kano",
-    estimatedDelivery: "2024-01-10",
-    actualDelivery: "2024-01-10",
-    weight: "1.8 kg",
-    description: "Documents",
-    createdAt: "2024-01-08",
-  },
-  {
-    id: "NP001232",
-    trackingId: "NP001232",
-    userId: "USR005",
-    userName: "David Brown",
-    origin: "Lagos",
-    destination: "Ibadan",
-    status: "DELIVERED",
-    currentLocation: "Ibadan",
-    estimatedDelivery: "2024-01-05",
-    actualDelivery: "2024-01-05",
-    weight: "5.0 kg",
-    description: "Books",
-    createdAt: "2024-01-03",
-  },
-];
+interface Delivery {
+  id: string;
+  trackingId: string;
+  origin: string;
+  destination: string;
+  status: string;
+  currentLocation?: string;
+  weight?: number;
+  value?: number;
+  description?: string;
+  estimatedDelivery?: string;
+  createdAt: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  staff?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -121,20 +70,87 @@ const getStatusText = (status: string) => {
 
 export default function StaffDeliveries() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredDeliveries, setFilteredDeliveries] = useState(allDeliveries);
+  const [allDeliveries, setAllDeliveries] = useState<Delivery[]>([]);
+  const [filteredDeliveries, setFilteredDeliveries] = useState<Delivery[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    loadDeliveries();
+  }, []);
+
+  useEffect(() => {
+    if (allDeliveries.length > 0) {
+      const filtered = allDeliveries.filter(
+        (delivery) =>
+          delivery.trackingId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          delivery.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (delivery.description && delivery.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          delivery.origin.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          delivery.destination.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredDeliveries(filtered);
+    }
+  }, [allDeliveries, searchTerm]);
+
+  const loadDeliveries = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      
+      const token = localStorage.getItem('staff_token');
+      const response = await fetch('/api/parcels', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setAllDeliveries(data.parcels || []);
+        setFilteredDeliveries(data.parcels || []);
+      } else {
+        setError('Failed to load deliveries');
+      }
+    } catch (error) {
+      console.error('Error fetching deliveries:', error);
+      setError('Failed to load deliveries');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    const filtered = allDeliveries.filter(
-      (delivery) =>
-        delivery.trackingId.toLowerCase().includes(term.toLowerCase()) ||
-        delivery.userName.toLowerCase().includes(term.toLowerCase()) ||
-        delivery.description.toLowerCase().includes(term.toLowerCase()) ||
-        delivery.origin.toLowerCase().includes(term.toLowerCase()) ||
-        delivery.destination.toLowerCase().includes(term.toLowerCase())
-    );
-    setFilteredDeliveries(filtered);
   };
+
+  if (loading) {
+    return (
+      <StaffDashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 mx-auto mb-4 text-nipost-blue animate-spin" />
+            <p>Loading deliveries...</p>
+          </div>
+        </div>
+      </StaffDashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <StaffDashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <p className="text-red-500 mb-4">{error}</p>
+            <Button onClick={loadDeliveries} className="bg-nipost-blue hover:bg-nipost-dark-blue">
+              Retry
+            </Button>
+          </div>
+        </div>
+      </StaffDashboardLayout>
+    );
+  }
 
   return (
     <StaffDashboardLayout>
@@ -237,9 +253,9 @@ export default function StaffDeliveries() {
                       </TableCell>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{delivery.userName}</div>
+                          <div className="font-medium">{delivery.user.name}</div>
                           <div className="text-sm text-muted-foreground">
-                            {delivery.userId}
+                            {delivery.user.email}
                           </div>
                         </div>
                       </TableCell>
@@ -253,12 +269,17 @@ export default function StaffDeliveries() {
                           {getStatusText(delivery.status)}
                         </Badge>
                       </TableCell>
-                      <TableCell>{delivery.currentLocation}</TableCell>
-                      <TableCell>{delivery.estimatedDelivery}</TableCell>
-                      <TableCell>{delivery.weight}</TableCell>
+                      <TableCell>{delivery.currentLocation || 'N/A'}</TableCell>
+                      <TableCell>
+                        {delivery.estimatedDelivery 
+                          ? new Date(delivery.estimatedDelivery).toLocaleDateString()
+                          : 'N/A'
+                        }
+                      </TableCell>
+                      <TableCell>{delivery.weight ? `${delivery.weight} kg` : 'N/A'}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Link href={`/staff/delivery/${delivery.trackingId}`}>
+                          <Link href={`/staff/delivery/${delivery.id}`}>
                             <Button variant="outline" size="sm">
                               <Edit className="h-4 w-4" />
                             </Button>

@@ -38,9 +38,7 @@ async function handler(req: AuthenticatedRequest) {
       
       const skip = (Number(page) - 1) * Number(limit);
       
-      const where: any = {
-        role: UserRole.CUSTOMER,
-      };
+      const where: any = {};
 
       if (search) {
         where.OR = [

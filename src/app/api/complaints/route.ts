@@ -155,6 +155,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify parcel exists if trackingId is provided
+    let parcelId = null;
     if (trackingId) {
       const parcel = await db.parcel.findUnique({
         where: { trackingId },
@@ -168,6 +169,8 @@ export async function POST(request: NextRequest) {
       if (session.user.role === 'CUSTOMER' && parcel.userId !== session.user.id) {
         return NextResponse.json({ error: 'Unauthorized to file complaint for this parcel' }, { status: 403 });
       }
+
+      parcelId = parcel.id;
     }
 
     // Verify user exists before creating complaint
@@ -182,6 +185,7 @@ export async function POST(request: NextRequest) {
     const complaint = await db.complaint.create({
       data: {
         trackingId,
+        parcelId,
         userId: session.user.id,
         title,
         description,

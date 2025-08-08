@@ -51,7 +51,7 @@ export default function StaffDashboard() {
         }
 
         // Fetch parcels data
-        const parcelsResponse = await fetch('/api/staff/parcels', {
+        const parcelsResponse = await fetch('/api/parcels', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -101,11 +101,22 @@ export default function StaffDashboard() {
           setRecentComplaints(recent);
         }
 
-        // For active users, we'll use a mock number for now since we don't have a specific endpoint
-        setStats(prev => ({
-          ...prev,
-          activeUsers: 1234 // This would come from a users endpoint in a real implementation
-        }));
+        // Fetch active users (customers)
+        const usersResponse = await fetch('/api/admin/customers', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (usersResponse.ok) {
+          const usersData = await usersResponse.json();
+          const activeUsers = usersData.users?.length || 0;
+          
+          setStats(prev => ({
+            ...prev,
+            activeUsers
+          }));
+        }
 
       } catch (error) {
         console.error('Error fetching dashboard data:', error);

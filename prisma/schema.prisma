@@ -175,6 +175,7 @@ model ProofOfDelivery {
 model Complaint {
   id              String            @id @default(cuid())
   trackingId      String?
+  parcelId        String?
   userId          String
   staffId         String?
   title           String
@@ -191,7 +192,7 @@ model Complaint {
   // Relations
   user            User              @relation("UserComplaints", fields: [userId], references: [id])
   staff           User?             @relation("StaffComplaints", fields: [staffId], references: [id])
-  parcel          Parcel?           @relation("ParcelComplaints", fields: [trackingId], references: [trackingId])
+  parcel          Parcel?           @relation("ParcelComplaints", fields: [parcelId], references: [id])
   responses       ComplaintResponse[]
 
   @@map("complaints")
