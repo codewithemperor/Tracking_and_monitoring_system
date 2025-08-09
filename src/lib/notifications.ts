@@ -1,4 +1,5 @@
-import nodemailer from 'nodemailer';
+import nodemailer, { createTransport } from 'nodemailer';
+
 
 interface EmailOptions {
   to: string;
@@ -18,7 +19,7 @@ class NotificationService {
   constructor() {
     // Initialize email transporter if SMTP credentials are available
     if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-      this.emailTransporter = nodemailer.createTransporter({
+      this.emailTransporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: parseInt(process.env.SMTP_PORT || '587'),
         secure: process.env.SMTP_SECURE === 'true',
