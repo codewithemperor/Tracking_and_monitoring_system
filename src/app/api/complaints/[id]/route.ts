@@ -45,7 +45,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const complaint = await db.complaint.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         user: {
           select: {
@@ -121,7 +121,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (status === 'RESOLVED') updateData.resolvedAt = new Date();
 
     const complaint = await db.complaint.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: {
         user: {
@@ -166,7 +166,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     }
 
     await db.complaint.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ message: 'Complaint deleted successfully' });

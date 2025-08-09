@@ -53,7 +53,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // Check if complaint exists
     const complaint = await db.complaint.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!complaint) {
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const response = await db.complaintResponse.create({
       data: {
-        complaintId: params.id,
+        complaintId: id,
         staffId: session.user.id,
         message,
         isInternal: isInternal || false,
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     // Update complaint status if it's still OPEN
     if (complaint.status === 'OPEN') {
       await db.complaint.update({
-        where: { id: params.id },
+        where: { id },
         data: {
           status: 'IN_PROGRESS',
           staffId: session.user.id,

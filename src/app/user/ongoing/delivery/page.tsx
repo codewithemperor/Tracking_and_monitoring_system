@@ -162,7 +162,7 @@ export default function UserOngoingDeliveries() {
                 </div>
                 
                 <div className="pt-2">
-                  <Link href={`/user/ongoing/delivery/${delivery.trackingId}`}>
+                  <Link href={`/user/delivery/${delivery.trackingId}`}>
                     <Button className="w-full bg-nipost-blue hover:bg-nipost-dark-blue">
                       View Details
                     </Button>
