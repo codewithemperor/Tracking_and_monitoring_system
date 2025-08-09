@@ -122,7 +122,7 @@ export default function FAQSection() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="mailto:support@nipost.gov.ng"
+                href="mailto:support@nipost.gv.nd"
                 className="btn-primary inline-flex items-center justify-center"
               >
                 Email Support

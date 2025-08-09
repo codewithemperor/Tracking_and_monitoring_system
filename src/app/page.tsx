@@ -95,10 +95,10 @@ export default function Home() {
             <div>
               <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="/track" className="hover:text-white transition-colors">Track Parcel</a></li>
-                <li><a href="/services" className="hover:text-white transition-colors">Services</a></li>
-                <li><a href="/about" className="hover:text-white transition-colors">About Us</a></li>
-                <li><a href="/contact" className="hover:text-white transition-colors">Contact</a></li>
+                <li><a href="#track" className="hover:text-white transition-colors">Track Parcel</a></li>
+                <li><a href="#services" className="hover:text-white transition-colors">Services</a></li>
+                <li><a href="#faq" className="hover:text-white transition-colors">FAQ</a></li>
+                <li><a href="#testimonies" className="hover:text-white transition-colors">Testimonies</a></li>
               </ul>
             </div>
             
@@ -115,7 +115,7 @@ export default function Home() {
             <div>
               <h3 className="text-lg font-semibold mb-4">Contact Info</h3>
               <ul className="space-y-2 text-gray-400">
-                <li>📧 support@nipost.gov.ng</li>
+                <li>📧 support@nipost.gv.nd</li>
                 <li>📞 +234 800 000 0000</li>
                 <li>📍 Abuja, Nigeria</li>
               </ul>
