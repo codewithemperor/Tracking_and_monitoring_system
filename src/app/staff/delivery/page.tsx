@@ -99,7 +99,7 @@ export default function StaffDeliveries() {
       setError("");
       
       const token = localStorage.getItem('staff_token');
-      const response = await fetch('/api/parcels', {
+      const response = await fetch('/api/staff/parcels', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -279,7 +279,7 @@ export default function StaffDeliveries() {
                       <TableCell>{delivery.weight ? `${delivery.weight} kg` : 'N/A'}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Link href={`/staff/delivery/${delivery.id}`}>
+                          <Link href={`/staff/delivery/${delivery.trackingId}`}>
                             <Button variant="outline" size="sm">
                               <Edit className="h-4 w-4" />
                             </Button>

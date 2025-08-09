@@ -33,7 +33,7 @@ const userNavItems = [
   },
   {
     title: "Complaints",
-    href: "/user/complaint",
+    href: "/user/complaints",
     icon: FileText,
   },
 ];

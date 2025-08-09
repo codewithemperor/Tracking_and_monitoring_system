@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { UserDashboardLayout } from "@/components/layout/user-dashboard-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, Truck, FileText, TrendingUp } from "lucide-react";
@@ -15,7 +16,7 @@ interface User {
 
 interface Delivery {
   id: string;
-  trackingNumber: string;
+  trackingId: string;
   status: string;
   origin: string;
   destination: string;
@@ -207,7 +208,7 @@ export default function UserDashboard() {
                   }`} />
                   <div className="flex-1 space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      Package #{delivery.trackingNumber}
+                      Package #{delivery.trackingId}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {delivery.origin} → {delivery.destination} • {delivery.status.replace('_', ' ')}
@@ -234,24 +235,30 @@ export default function UserDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <button className="w-full text-left p-3 rounded-lg border hover:bg-accent transition-colors">
-                <div className="font-medium">Track New Package</div>
-                <div className="text-sm text-muted-foreground">
-                  Enter tracking number
-                </div>
-              </button>
-              <button className="w-full text-left p-3 rounded-lg border hover:bg-accent transition-colors">
-                <div className="font-medium">File Complaint</div>
-                <div className="text-sm text-muted-foreground">
-                  Report an issue
-                </div>
-              </button>
-              <button className="w-full text-left p-3 rounded-lg border hover:bg-accent transition-colors">
-                <div className="font-medium">View All Deliveries</div>
-                <div className="text-sm text-muted-foreground">
-                  See complete history
-                </div>
-              </button>
+              <Link href="/track">
+                <button className="w-full text-left p-3 rounded-lg border hover:bg-accent transition-colors">
+                  <div className="font-medium">Track New Package</div>
+                  <div className="text-sm text-muted-foreground">
+                    Enter tracking number
+                  </div>
+                </button>
+              </Link>
+              <Link href="/user/complaint/add">
+                <button className="w-full text-left p-3 rounded-lg border hover:bg-accent transition-colors">
+                  <div className="font-medium">File Complaint</div>
+                  <div className="text-sm text-muted-foreground">
+                    Report an issue
+                  </div>
+                </button>
+              </Link>
+              <Link href="/user/delivery">
+                <button className="w-full text-left p-3 rounded-lg border hover:bg-accent transition-colors">
+                  <div className="font-medium">View All Deliveries</div>
+                  <div className="text-sm text-muted-foreground">
+                    See complete history
+                  </div>
+                </button>
+              </Link>
             </CardContent>
           </Card>
         </div>

@@ -51,7 +51,7 @@ export default function StaffDashboard() {
         }
 
         // Fetch parcels data
-        const parcelsResponse = await fetch('/api/parcels', {
+        const parcelsResponse = await fetch('/api/staff/parcels', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -64,6 +64,8 @@ export default function StaffDashboard() {
           // Calculate stats
           const totalParcels = parcels.length;
           const inTransit = parcels.filter((p: Parcel) => p.status === 'IN_TRANSIT').length;
+          const delivered = parcels.filter((p: Parcel) => p.status === 'DELIVERED').length;
+          const pending = parcels.filter((p: Parcel) => p.status === 'PENDING').length;
           
           setStats(prev => ({
             ...prev,
@@ -71,11 +73,22 @@ export default function StaffDashboard() {
             inTransit
           }));
           
+          // Store additional stats for performance calculations
+          const performanceStats = {
+            totalParcels,
+            delivered,
+            inTransit,
+            pending
+          };
+          
           // Get recent parcels (last 3)
           const recent = parcels
             .sort((a: Parcel, b: Parcel) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
             .slice(0, 3);
           setRecentParcels(recent);
+          
+          // Set performance stats in a way that can be used in the UI
+          (window as any).performanceStats = performanceStats;
         }
 
         // Fetch complaints data
@@ -290,15 +303,29 @@ export default function StaffDashboard() {
                   <span className="font-medium">{stats.totalParcels}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">Delivered on Time</span>
+                  <span className="text-sm">Delivered</span>
                   <span className="font-medium text-green-600">
-                    {stats.totalParcels > 0 ? Math.round((stats.totalParcels - stats.inTransit) / stats.totalParcels * 100) : 0}%
+                    {(window as any).performanceStats?.delivered || 0}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">Delayed Deliveries</span>
+                  <span className="text-sm">In Transit</span>
+                  <span className="font-medium text-blue-600">
+                    {stats.inTransit}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Pending</span>
                   <span className="font-medium text-yellow-600">
-                    {stats.totalParcels > 0 ? Math.round(stats.inTransit / stats.totalParcels * 100) : 0}%
+                    {(window as any).performanceStats?.pending || 0}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Success Rate</span>
+                  <span className="font-medium text-green-600">
+                    {stats.totalParcels > 0 
+                      ? Math.round(((window as any).performanceStats?.delivered || 0) / stats.totalParcels * 100) 
+                      : 0}%
                   </span>
                 </div>
                 <div className="flex justify-between items-center">

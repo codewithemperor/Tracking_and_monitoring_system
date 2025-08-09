@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Package, MapPin, Truck, Clock, User, Edit, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { DeliveryEditModal } from "@/components/delivery-edit-modal";
 
 interface Delivery {
   id: string;
@@ -85,6 +86,7 @@ export default function StaffDeliveryDetailPage() {
   const [delivery, setDelivery] = useState<Delivery | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     loadDelivery();
@@ -96,7 +98,7 @@ export default function StaffDeliveryDetailPage() {
       setError("");
       
       const token = localStorage.getItem('staff_token');
-      const response = await fetch(`/api/parcels/${params.id}`, {
+      const response = await fetch(`/api/track/${params.id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -114,6 +116,10 @@ export default function StaffDeliveryDetailPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSaveDelivery = (updatedDelivery: Partial<Delivery>) => {
+    setDelivery(updatedDelivery as Delivery);
   };
 
   if (loading) {
@@ -161,6 +167,13 @@ export default function StaffDeliveryDetailPage() {
               </p>
             </div>
           </div>
+          <Button 
+            onClick={() => setIsEditModalOpen(true)}
+            className="bg-nipost-blue hover:bg-nipost-dark-blue"
+          >
+            <Edit className="h-4 w-4 mr-2" />
+            Edit
+          </Button>
         </div>
 
         {/* Main Content */}
@@ -300,6 +313,17 @@ export default function StaffDeliveryDetailPage() {
           </Card>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {delivery && (
+        <DeliveryEditModal
+          delivery={delivery}
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={handleSaveDelivery}
+          userRole="STAFF"
+        />
+      )}
     </StaffDashboardLayout>
   );
 }

@@ -113,7 +113,7 @@ export default function UserDeliveryDetailPage() {
       setError("");
       
       const token = localStorage.getItem('user_token');
-      const response = await fetch(`/api/parcels/${deliveryId}`, {
+      const response = await fetch(`/api/track/${deliveryId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

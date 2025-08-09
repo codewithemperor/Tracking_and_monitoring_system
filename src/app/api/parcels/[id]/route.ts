@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { withAuth, AuthenticatedRequest } from '@/lib/middleware';
 
-async function handler(req: AuthenticatedRequest, context: { params: { id: string } }) {
-  const { id } = context.params;
+async function handler(req: AuthenticatedRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
   try {
     if (req.method === 'GET') {
       const parcel = await db.parcel.findUnique({

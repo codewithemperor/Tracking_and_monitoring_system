@@ -53,7 +53,7 @@ export default function AdminDeliveryEditPage() {
   const loadDelivery = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const response = await fetch(`/api/parcels/${params.id}`, {
+      const response = await fetch(`/api/track/${params.id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -139,7 +139,7 @@ export default function AdminDeliveryEditPage() {
       });
 
       if (response.ok) {
-        router.push(`/admin/delivery/${delivery.id}`);
+        router.push(`/admin/delivery/${delivery.trackingId}`);
       } else {
         setError('Failed to update delivery');
       }
@@ -185,7 +185,7 @@ export default function AdminDeliveryEditPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Link href={`/admin/delivery/${delivery.id}`}>
+            <Link href={`/admin/delivery/${delivery.trackingId}`}>
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Details
@@ -360,7 +360,7 @@ export default function AdminDeliveryEditPage() {
             </div>
 
             <div className="flex justify-end space-x-2">
-              <Link href={`/admin/delivery/${delivery.id}`}>
+              <Link href={`/admin/delivery/${delivery.trackingId}`}>
                 <Button variant="outline">Cancel</Button>
               </Link>
               <Button 

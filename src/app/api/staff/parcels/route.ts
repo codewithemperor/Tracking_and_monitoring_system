@@ -34,12 +34,12 @@ async function handler(req: AuthenticatedRequest) {
       
       const skip = (page - 1) * limit;
       
-      const where: any = {};
-
-      // If user is staff, only show assigned parcels
-      if (req.user!.role === UserRole.STAFF) {
-        where.staffId = req.user!.userId;
-      }
+      const where: any = {
+        OR: [
+          { staffId: req.user!.userId }, // Assigned to staff
+          { userId: req.user!.userId }   // Created by staff
+        ]
+      };
 
       if (status && Object.values(ParcelStatus).includes(status as ParcelStatus)) {
         where.status = status as ParcelStatus;
