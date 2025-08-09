@@ -6,12 +6,13 @@ import { z } from 'zod';
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
+  role: z.enum(['CUSTOMER', 'STAFF', 'ADMIN']),
 });
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password } = loginSchema.parse(body);
+    const { email, password, role } = loginSchema.parse(body);
 
     // Find user
     const user = await db.user.findUnique({
@@ -31,6 +32,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
+      );
+    }
+
+    // Validate role - ensure user's actual role matches the intended login role
+    if (user.role !== role) {
+      return NextResponse.json(
+        { error: `Access denied. This account is registered as ${user.role.toLowerCase()}, not ${role.toLowerCase()}` },
+        { status: 403 }
       );
     }
 

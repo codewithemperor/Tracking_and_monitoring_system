@@ -40,7 +40,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const { id } = await params;
   try {
     const session = await getSession(request);
-    if (!session || (session.user.role !== 'STAFF' && session.user.role !== 'ADMIN')) {
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
-    // Check if complaint exists
+    // Check if complaint exists and user has permission
     const complaint = await db.complaint.findUnique({
       where: { id },
     });
@@ -60,10 +60,22 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'Complaint not found' }, { status: 404 });
     }
 
+    // Check permissions:
+    // - CUSTOMER can only respond to their own complaints
+    // - STAFF and ADMIN can respond to any complaint
+    if (session.user.role === 'CUSTOMER' && complaint.userId !== session.user.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
+    // Only staff/admin can create internal responses
+    if (isInternal && session.user.role === 'CUSTOMER') {
+      return NextResponse.json({ error: 'Customers cannot create internal responses' }, { status: 403 });
+    }
+
     const response = await db.complaintResponse.create({
       data: {
         complaintId: id,
-        staffId: session.user.id,
+        staffId: session.user.id, // This field name is misleading - it works for both staff and customers
         message,
         isInternal: isInternal || false,
       },
@@ -77,8 +89,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
     });
 
-    // Update complaint status if it's still OPEN
-    if (complaint.status === 'OPEN') {
+    // Update complaint status if it's still OPEN and response is from staff
+    if (complaint.status === 'OPEN' && (session.user.role === 'STAFF' || session.user.role === 'ADMIN')) {
       await db.complaint.update({
         where: { id },
         data: {
@@ -88,23 +100,35 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       });
     }
 
-    // Create notification for customer if not internal response
+    // Create notification for the other party if not internal response
     if (!isInternal) {
       try {
-        // Verify the user exists before creating notification
-        const userExists = await db.user.findUnique({
-          where: { id: complaint.userId }
-        });
+        let notificationUserId = '';
+        
+        // If customer responded, notify staff
+        if (session.user.role === 'CUSTOMER' && complaint.staffId) {
+          notificationUserId = complaint.staffId;
+        }
+        // If staff responded, notify customer
+        else if ((session.user.role === 'STAFF' || session.user.role === 'ADMIN') && complaint.userId) {
+          notificationUserId = complaint.userId;
+        }
 
-        if (userExists) {
-          await db.notification.create({
-            data: {
-              userId: complaint.userId,
-              message: `Response received for your complaint: ${complaint.title}`,
-              type: 'EMAIL',
-              status: 'PENDING',
-            },
+        if (notificationUserId) {
+          const userExists = await db.user.findUnique({
+            where: { id: notificationUserId }
           });
+
+          if (userExists) {
+            await db.notification.create({
+              data: {
+                userId: notificationUserId,
+                message: `New response received for complaint: ${complaint.title}`,
+                type: 'EMAIL',
+                status: 'PENDING',
+              },
+            });
+          }
         }
       } catch (notificationError) {
         console.error('Error creating notification:', notificationError);
