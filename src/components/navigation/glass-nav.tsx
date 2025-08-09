@@ -28,37 +28,19 @@ export default function GlassNav({ user }: GlassNavProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleLogout = () => {
-    // Clear localStorage
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    // Redirect to login
-    router.push('/login');
-  };
 
-  const getDashboardLink = () => {
-    if (!user) return '/login';
-    switch (user.role) {
-      case 'ADMIN':
-        return '/admin-dashboard';
-      case 'STAFF':
-        return '/staff-dashboard';
-      default:
-        return '/dashboard';
-    }
-  };
 
   const navLinks = [
     { name: 'Home', href: '/' },
-    { name: 'Track Parcel', href: '/track' },
-    { name: 'Services', href: '/services' },
-    { name: 'About', href: '/about' },
-    { name: 'Contact', href: '/contact' },
+    { name: 'Track Parcel', href: '#track' },
+    { name: 'Services', href: '#services' },
+    { name: 'FAQ', href: '#faq' },
+    { name: 'Testimonies', href: '#testimonies' },
   ];
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      isScrolled ? 'glass-dark py-2' : 'glass py-4'
+      isScrolled ? 'glass-dark py-4' : 'glass py-4'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
@@ -85,25 +67,13 @@ export default function GlassNav({ user }: GlassNavProps) {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
-            {user ? (
-              <>
-                <Link href={getDashboardLink()}>
-                  <Button variant="outline" className="border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-blue-900">
-                    Dashboard
-                  </Button>
-                </Link>
-                <Button onClick={handleLogout} className="btn-primary">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Logout
-                </Button>
-              </>
-            ) : (
+   
               <Link href="/user/login">
                 <Button className="btn-primary">
                   Get Started
                 </Button>
               </Link>
-            )}
+
           </div>
 
           {/* Mobile Navigation */}
@@ -140,32 +110,13 @@ export default function GlassNav({ user }: GlassNavProps) {
 
                 {/* Mobile CTA */}
                 <div className="space-y-4 pt-8 border-t border-white/10">
-                  {user ? (
-                    <>
-                      <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
-                        <User className="w-5 h-5 text-yellow-400" />
-                        <div>
-                          <p className="text-white font-medium">{user.name}</p>
-                          <p className="text-white/60 text-sm">{user.role}</p>
-                        </div>
-                      </div>
-                      <Link href={getDashboardLink()} className="block">
-                        <Button variant="outline" className="w-full border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-blue-900">
-                          Dashboard
-                        </Button>
-                      </Link>
-                      <Button onClick={handleLogout} className="w-full btn-primary">
-                        <LogOut className="w-4 h-4 mr-2" />
-                        Logout
-                      </Button>
-                    </>
-                  ) : (
+                 
                     <Link href="/user/login" className="block">
                       <Button className="w-full btn-primary">
                         Get Started
                       </Button>
                     </Link>
-                  )}
+                
                 </div>
               </div>
             </SheetContent>

@@ -35,7 +35,7 @@ export default function HeroSection() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center my-28 mt-36">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -47,19 +47,19 @@ export default function HeroSection() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="inline-flex items-center px-4 py-2 bg-yellow-400/20 backdrop-blur-sm border border-yellow-400/30 rounded-full mb-8"
+            className="inline-flex items-center px-4 py-2 bg-yellow-400/20 backdrop-blur-sm border border-yellow-400/30 rounded-full mb-2"
           >
             <span className="text-yellow-400 font-medium">🚚 Nigeria's Leading Postal Service</span>
           </motion.div>
 
           {/* Main Heading */}
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+          <h1 className="text-5xl md:text-7xl font-bold text-white mb-2 leading-tight uppercase">
             Fast & Reliable
             <span className="text-yellow-400 block">Parcel Delivery</span>
           </h1>
 
           {/* Subheading */}
-          <p className="text-xl md:text-2xl text-white/80 mb-12 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg md:text-xl text-white/80 mb-12 max-w-2xl mx-auto leading-relaxed">
             Track your parcels in real-time, manage deliveries efficiently, and experience seamless logistics with NIPOST's advanced tracking system.
           </p>
 
@@ -71,13 +71,13 @@ export default function HeroSection() {
             className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16"
           >
             <Link href="/login">
-              <Button size="lg" className="btn-primary text-lg px-8 py-4 group">
+              <Button size="lg" className="btn-primary text-lg px-8 py-6 group">
                 Get Started
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Link href="/track">
-              <Button size="lg" variant="outline" className="btn-secondary text-lg px-8 py-4">
+              <Button size="lg" variant="outline" className="btn-secondary text-lg px-8 py-6">
                 Track a Parcel
               </Button>
             </Link>
@@ -88,6 +88,7 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 0.6 }}
+            id='track'
             className="max-w-2xl mx-auto bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6"
           >
             <h3 className="text-white text-lg font-semibold mb-4">Quick Track</h3>
@@ -108,7 +109,7 @@ export default function HeroSection() {
         </motion.div>
 
         {/* Stats */}
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.6 }}
@@ -132,7 +133,7 @@ export default function HeroSection() {
               <p className="text-white/80 font-medium">{stat.label}</p>
             </motion.div>
           ))}
-        </motion.div>
+        </motion.div> */}
       </div>
 
       {/* Floating Elements */}
