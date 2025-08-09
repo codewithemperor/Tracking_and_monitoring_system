@@ -10,8 +10,8 @@ export interface AuthenticatedRequest extends NextRequest {
   };
 }
 
-export function withAuth(handler: (req: AuthenticatedRequest) => Promise<NextResponse>) {
-  return async (req: NextRequest): Promise<NextResponse> => {
+export function withAuth(handler: (req: AuthenticatedRequest, context?: { params: Promise<any> }) => Promise<NextResponse>) {
+  return async (req: NextRequest, context?: { params: Promise<any> }): Promise<NextResponse> => {
     try {
       const authHeader = req.headers.get('authorization');
       const token = extractTokenFromHeader(authHeader);
@@ -34,7 +34,7 @@ export function withAuth(handler: (req: AuthenticatedRequest) => Promise<NextRes
       // Add user info to request
       (req as AuthenticatedRequest).user = payload;
 
-      return await handler(req as AuthenticatedRequest);
+      return await handler(req as AuthenticatedRequest, context);
     } catch (error) {
       console.error('Auth middleware error:', error);
       return NextResponse.json(
@@ -46,8 +46,8 @@ export function withAuth(handler: (req: AuthenticatedRequest) => Promise<NextRes
 }
 
 export function withRole(roles: UserRole[]) {
-  return function (handler: (req: AuthenticatedRequest) => Promise<NextResponse>) {
-    return withAuth(async (req: AuthenticatedRequest): Promise<NextResponse> => {
+  return function (handler: (req: AuthenticatedRequest, context?: { params: Promise<any> }) => Promise<NextResponse>) {
+    return withAuth(async (req: AuthenticatedRequest, context?: { params: Promise<any> }): Promise<NextResponse> => {
       if (!req.user || !roles.includes(req.user.role)) {
         return NextResponse.json(
           { error: 'Insufficient permissions' },
@@ -55,7 +55,7 @@ export function withRole(roles: UserRole[]) {
         );
       }
 
-      return await handler(req);
+      return await handler(req, context);
     });
   };
 }
