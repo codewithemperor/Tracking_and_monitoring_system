@@ -20,6 +20,9 @@ export const metadata: Metadata = {
     description: "Advanced parcel tracking and monitoring system for NIPOST",
     type: "website",
   },
+  icons: {
+    icon: "/favicon.png", 
+  },
   twitter: {
     card: "summary_large_image",
     title: "NIPOST Track - Real-time Parcel Tracking",
