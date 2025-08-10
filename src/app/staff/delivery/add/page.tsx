@@ -147,9 +147,9 @@ export default function StaffAddDelivery() {
           title: "Success",
           description: "Delivery created successfully!",
         });
-        // setTimeout(() => {
-        //   router.push('/staff/delivery');
-        // }, 1500);
+        setTimeout(() => {
+          router.push('/staff/delivery');
+        }, 1500);
       } else {
         toast({
           title: "Error",

@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FileText, Package, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 interface Delivery {
   id: string;
@@ -42,6 +43,7 @@ const deliveryComplaintCategories = [
 ];
 
 export default function UserComplaint() {
+  const router = useRouter();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     category: "",
@@ -130,6 +132,9 @@ export default function UserComplaint() {
           title: "",
           description: "",
         });
+        setTimeout(() => {
+          router.push('/user/complaints');
+        }, 1500);
       } else {
         toast({
           title: "Error",

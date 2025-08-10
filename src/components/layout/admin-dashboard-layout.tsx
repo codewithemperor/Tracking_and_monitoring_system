@@ -32,11 +32,6 @@ const adminNavItems = [
     icon: Plus,
   },
   {
-    title: "Complaints",
-    href: "/admin/complaint",
-    icon: FileText,
-  },
-  {
     title: "Staff Management",
     href: "/admin/staff",
     icon: Users,
