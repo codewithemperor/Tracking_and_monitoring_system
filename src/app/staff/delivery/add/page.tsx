@@ -117,6 +117,14 @@ export default function StaffAddDelivery() {
       const trackingNumber = formData.trackingNumber || generateTrackingNumber();
       
       const token = localStorage.getItem('staff_token');
+      const staffData = localStorage.getItem('staff_data');
+      let staffId = "";
+
+      if (staffData) {
+        const staffDatas = JSON.parse(staffData);
+        staffId = staffDatas.id;
+      }
+
       const response = await fetch("/api/parcels", {
         method: "POST",
         headers: {
@@ -126,6 +134,7 @@ export default function StaffAddDelivery() {
         body: JSON.stringify({
           ...formData,
           trackingNumber,
+          staffId,
           weight: formData.weight ? parseFloat(formData.weight) : undefined,
           value: formData.value ? parseFloat(formData.value) : undefined,
         }),
@@ -138,9 +147,9 @@ export default function StaffAddDelivery() {
           title: "Success",
           description: "Delivery created successfully!",
         });
-        setTimeout(() => {
-          router.push('/staff/delivery');
-        }, 1500);
+        // setTimeout(() => {
+        //   router.push('/staff/delivery');
+        // }, 1500);
       } else {
         toast({
           title: "Error",
